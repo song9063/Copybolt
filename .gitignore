@@ -13,3 +13,13 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+copybolt/.DS_Store
+copybolt/.idea/copybolt.iml
+copybolt/.idea/misc.xml
+copybolt/.idea/modules.xml
+copybolt/.idea/workspace.xml
+copybolt/deploy/.DS_Store
+copybolt/deploy/darwin/.DS_Store
+.DS_Store
+copybolt/deploy/*
+
