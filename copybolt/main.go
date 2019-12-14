@@ -234,6 +234,13 @@ func copyDir(src, dst string) error {
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
 		dstfp := path.Join(dst, fd.Name())
+		fmt.Print("FDName:")
+		fmt.Println(fd.Name())
+
+		fdName := fd.Name()
+		if fdName == ".idea" || fdName == ".name" {
+			continue
+		}
 
 		if fd.IsDir() {
 			if err = copyDir(srcfp, dstfp); err != nil {
