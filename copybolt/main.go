@@ -116,32 +116,34 @@ func main(){
 		if _, err := os.Stat(strFilesTo); os.IsNotExist(err) {
 			os.Mkdir(strFilesTo, os.ModePerm)
 			err = copyDir(strSource, strFilesTo)
-		}
+			if err != nil {
+				fmt.Println("Error:")
+				fmt.Println(err)
+			}else{
+				// 패키지 수정 시작
+				err = filepath.Walk(strFilesTo, func(path string, info os.FileInfo, ferr error) error {
+					if ferr != nil {
+						return ferr
+					}
 
-		// 패키지 수정 시작
-		err := filepath.Walk(strFilesTo, func(path string, info os.FileInfo, ferr error) error {
-			if ferr != nil {
-				return ferr
-			}
+					name := info.Name()
+					if strings.HasSuffix(name, ".go") {
+						fmt.Println("GOGOGO " + name)
 
-			name := info.Name()
-			if strings.HasSuffix(name, ".go") {
-				fmt.Println("GOGOGO " + name)
+						if cerr := changePackageName(path, strPackageName); cerr != nil {
+							fmt.Println("Error while change package name")
+							fmt.Println(cerr)
+						}
 
-				if cerr := changePackageName(path, strPackageName); cerr != nil {
-					fmt.Println("Error while change package name")
-					fmt.Println(cerr)
+					}
+					return nil
+				})
+
+				if err != nil {
+					fmt.Println(err)
 				}
-
 			}
-
-
-			return nil
-		})
-		if err != nil {
-			fmt.Println(err)
 		}
-
 
 		btCopy.SetEnabled(true)
 
@@ -230,6 +232,140 @@ func copyDir(src, dst string) error {
 	if fds, err = ioutil.ReadDir(src); err != nil {
 		return err
 	}
+	unc(path string, info os.FileInfo, ferr error) error {
+		if ferr != nil {
+		return ferr
+	}
+
+		name := info.Name()
+		if strings.HasSuffix(name, ".go") {
+		fmt.Println("GOGOGO " + name)
+
+		if cerr := changePackageName(path, strPackageName); cerr != nil {
+		fmt.Println("Error while change package name")
+		fmt.Println(cerr)
+	}
+
+	}
+		return nil
+	})
+
+	if err != nil {
+		fmt.Println(err)
+	}
+}
+}
+
+btCopy.SetEnabled(true)
+
+msg := widgets.NewQMessageBox(widget)
+msgResp := msg.Information(widget, "Hello", "Success!!", widgets.QMessageBox__Ok, widgets.QMessageBox__NoButton)
+if msgResp == widgets.QMessageBox__No {
+fmt.Println("Yes")
+}
+})
+widget.Layout().AddWidget(btCopy)
+
+
+strOldSrc := setting.Value("src", core.NewQVariant12("")).ToString()
+strOldDest := setting.Value("dest", core.NewQVariant12("")).ToString()
+strSource = strOldSrc
+strDest = strOldDest
+inputPath.SetText( strOldSrc)
+outputPath.SetText(strOldDest)
+fmt.Println(strOldSrc)
+
+
+
+
+window.Show()
+app.Exec()
+}
+func changePackageName(fileName, newPackageName string ) error {
+	input, err := ioutil.ReadFile(fileName)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	lines := strings.Split(string(input), "\n")
+	for i, line := range lines {
+		if strings.Contains(line, "busangweb.com/goboltwebbase/") {
+			lines[i] = strings.ReplaceAll(line, "busangweb.com/goboltwebbase/", "busangweb.com/" + newPackageName + "/")
+		}
+	}
+	output := strings.Join(lines, "\n")
+	err = ioutil.WriteFile(fileName, []byte(output), 0644)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	return nil
+}
+func copyFile(src, dst string) error {
+	var err error
+	var srcfd *os.File
+	var dstfd *os.File
+	var srcinfo os.FileInfo
+
+	if srcfd, err = os.Open(src); err != nil {
+		return err
+	}
+	defer srcfd.Close()
+
+	if dstfd, err = os.Create(dst); err != nil {
+		return err
+	}
+	defer dstfd.Close()
+
+	if _, err = io.Copy(dstfd, srcfd); err != nil {
+		return err
+	}
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+	return os.Chmod(dst, srcinfo.Mode())
+}
+func copyDir(src, dst string) error {
+	var err error
+	var fds []os.FileInfo
+	var srcinfo os.FileInfo
+
+	if srcinfo, err = os.Stat(src); err != nil {
+		return err
+	}
+
+	if err = os.MkdirAll(dst, srcinfo.Mode()); err != nil {
+		return err
+	}
+
+	if fds, err = ioutil.ReadDir(src); err != nil {
+		return err
+	}
+
+	for _, fd := range fds {
+		srcfp := path.Join(src, fd.Name())
+		dstfp := path.Join(dst, fd.Name())
+		fmt.Print("FDName:")
+		fmt.Println(fd.Name())
+
+		fdName := fd.Name()
+		if fdName == ".idea" || fdName == ".name" {
+			continue
+		}
+
+		if fd.IsDir() {
+			if err = copyDir(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		}else{
+			if err = copyFile(srcfp, dstfp); err != nil {
+				fmt.Println(err)
+			}
+		}
+	}
+	return nil
 
 	for _, fd := range fds {
 		srcfp := path.Join(src, fd.Name())
